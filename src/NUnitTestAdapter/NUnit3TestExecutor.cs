@@ -51,7 +51,6 @@ namespace NUnit.VisualStudio.TestAdapter
         // Properties set when either of the RunTests methods is called
         public IRunContext RunContext { get; private set; }
         public IFrameworkHandle FrameworkHandle { get; private set; }
-        private TfsTestFilter TfsFilter { get; set; }
 
         // NOTE: an earlier version of this code had a FilterBuilder
         // property. This seemed to make sense, because we instantiate
@@ -180,7 +179,6 @@ namespace NUnit.VisualStudio.TestAdapter
 
             RunContext = runContext;
             FrameworkHandle = frameworkHandle;
-            TfsFilter = new TfsTestFilter(runContext);
 
             // Ensure any channels registered by other adapters are unregistered
             CleanUpRegisteredChannels();

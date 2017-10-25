@@ -86,6 +86,8 @@ namespace NUnit.VisualStudio.TestAdapter
         // Our logger used to display messages
         protected TestLogger TestLog { get; private set; }
 
+        protected TfsTestFilter TfsFilter { get; set; }
+
         private static string exeName;
 
         public static bool IsRunningUnderIDE
@@ -132,6 +134,8 @@ namespace NUnit.VisualStudio.TestAdapter
                 TestLog.Warning("Error initializing RunSettings. Default settings will be used");
                 TestLog.Warning(e.ToString());
             }
+
+            TfsFilter = new TfsTestFilter(context);
         }
 
         protected ITestRunner GetRunnerFor(string assemblyName)

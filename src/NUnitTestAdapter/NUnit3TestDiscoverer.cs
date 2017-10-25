@@ -180,8 +180,11 @@ namespace NUnit.VisualStudio.TestAdapter
                         Debugger.Launch();
 #endif
                     TestCase testCase = testConverter.ConvertTestCase(testNode);
-                    discoverySink.SendTestCase(testCase);
-                    cases += 1;
+                    if (!TfsFilter.FilterTest(testCase))
+                    {
+                        discoverySink.SendTestCase(testCase);
+                        cases += 1;
+                    }
                 }
                 catch (Exception ex)
                 {

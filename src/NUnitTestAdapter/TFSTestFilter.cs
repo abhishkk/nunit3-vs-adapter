@@ -79,10 +79,10 @@ namespace NUnit.VisualStudio.TestAdapter
             SupportedProperties.AddRange(SupportedTraitCache.Keys);
         }
 
-        private readonly IRunContext runContext;
-        public TfsTestFilter(IRunContext runContext)
+        private readonly IDiscoveryContext context;
+        public TfsTestFilter(IDiscoveryContext context)
         {
-            this.runContext = runContext;
+            this.context = context;
         }
 
 
@@ -92,7 +92,36 @@ namespace NUnit.VisualStudio.TestAdapter
             get
             {
                 return testCaseFilterExpression ??
-                       (testCaseFilterExpression = runContext.GetTestCaseFilter(SupportedProperties, PropertyProvider));
+                       (testCaseFilterExpression = (context is IRunContext) ? this.GetTestCaseFilterFromRunContext(context as IRunContext) : this.GetTestCaseFilterFromDiscoveryContext(context));
+            }
+        }
+
+        /// <summary>
+        /// Gets filter expression from run context.
+        /// </summary>
+        /// <param name="context">Run context</param>
+        /// <returns>Filter expression.</returns>
+        private ITestCaseFilterExpression GetTestCaseFilterFromRunContext(IRunContext context)
+        {
+            return context.GetTestCaseFilter(SupportedProperties, PropertyProvider);
+        }
+
+        /// <summary>
+        /// Gets filter expression from discovery context.
+        /// </summary>
+        /// <param name="context">Discovery context</param>
+        /// <returns>Filter expression.</returns>
+        private ITestCaseFilterExpression GetTestCaseFilterFromDiscoveryContext(IDiscoveryContext context)
+        {
+            try
+            {
+                // GetTestCaseFilter is present in DiscoveryContext but not in IDiscoveryContext interface.
+                MethodInfo methodGetTestCaseFilter = context.GetType().GetMethod("GetTestCaseFilter", new[] { typeof(IEnumerable<string>), typeof(Func<string, TestProperty>) });
+                return (ITestCaseFilterExpression)methodGetTestCaseFilter?.Invoke(context, new object[] { SupportedProperties, (Func<string, TestProperty>)PropertyProvider });
+            }
+            catch (TargetInvocationException ex)
+            {
+                throw ex.InnerException;
             }
         }
 
@@ -105,6 +134,11 @@ namespace NUnit.VisualStudio.TestAdapter
         {
 
             return TfsTestCaseFilterExpression == null ? tests : tests.Where(underTest => !TfsTestCaseFilterExpression.MatchTestCase(underTest, p => PropertyValueProvider(underTest, p)) == false).ToList();
+        }
+
+        public bool FilterTest(TestCase test)
+        {
+            return TfsTestCaseFilterExpression != null && !TfsTestCaseFilterExpression.MatchTestCase(test, p => PropertyValueProvider(test, p));
         }
 
         /// <summary>    
