@@ -123,6 +123,7 @@ namespace NUnit.VisualStudio.TestAdapter
             TestLog = new TestLogger(messageLogger);
             Settings = new AdapterSettings(TestLog);
             TestLog.InitSettings(Settings);
+            TfsFilter = new TfsTestFilter(context);
 
             try
             {
@@ -134,8 +135,6 @@ namespace NUnit.VisualStudio.TestAdapter
                 TestLog.Warning("Error initializing RunSettings. Default settings will be used");
                 TestLog.Warning(e.ToString());
             }
-
-            TfsFilter = new TfsTestFilter(context);
         }
 
         protected ITestRunner GetRunnerFor(string assemblyName)
